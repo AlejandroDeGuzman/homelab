@@ -100,6 +100,44 @@ Each directory contains its own `README.md` with configuration details, and note
 
 ---
 
+## 🌐 Networking
+
+This homelab uses **Tailscale** to provide secure, zero-config networking between devices.
+
+### Why Tailscale?
+
+- Encrypted WireGuard-based mesh networking
+- No port forwarding or public exposure required
+- Simple access across devices and locations
+- Ideal for low-maintenance homelab setups
+
+### Network Model
+
+- All services run on a private **Tailscale tailnet**
+- Devices communicate using stable Tailscale IPs and DNS
+- No VLANs, reverse proxies, or complex firewall rules
+- Services are not exposed directly to the public internet
+
+### Current Usage
+
+- Secure remote access to:
+  - Immich web interface
+  - SSH on homelab hosts
+- Access is limited to authenticated devices on the tailnet
+
+### Future Plans
+
+As the homelab grows, networking may expand to include:
+
+- Tailscale ACLs
+- Subnet routing for internal services
+- DNS integration (e.g. Pi-hole)
+- Reverse proxy and service discovery
+
+At that point, networking documentation will be split into a dedicated file.
+
+---
+
 ## 🛠️ Notes
 
 - Secrets and sensitive values are not committed to this repository
