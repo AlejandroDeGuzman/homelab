@@ -8,6 +8,16 @@ This repository acts as a living reference for how my homelab is designed, confi
 
 ---
 
+## 📚 Documentation Index
+
+Detailed documentation and notes are organised by topic and service.  
+Each directory contains its own `README.md` with configuration details, and notes.
+
+### Services
+- **Immich:** [`immich/README.md`](immich/README.md)
+
+---
+
 ## 🚀 Services
 
 ### Currently Running
