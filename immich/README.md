@@ -1,8 +1,16 @@
 # 📸 Immich Server (Raspberry Pi + MergerFS)
 
-This document describes the architecture and configuration of my self-hosted Immich photo server running on a Raspberry Pi using Docker and MergerFS.
+This document describes the architecture and configuration of my self-hosted **Immich** photo and video server running on a **Raspberry Pi** using **Docker** and **MergerFS**.
 
-The focus of this setup is reliability, low power usage, and scalable storage using multiple external drives.
+The primary goals of this setup are:
+
+- Low power consumption
+- Reliable, predictable storage
+- Simple scalability using multiple external disks
+- Minimal operational complexity
+
+This README focuses on **architecture and design decisions**.  
+Detailed configuration files are stored alongside this documentation.
 
 ---
 
@@ -15,6 +23,7 @@ The focus of this setup is reliability, low power usage, and scalable storage us
 - [Key MergerFS Options](#-key-mergerfs-options)
 - [Immich Configuration](#-immich-configuration)
 - [Immich Storage Layout](#-immich-storage-layout)
+- [Systemd Mounting](#-systemd-mounting)
 - [Operational Notes](#-operational-notes)
 - [Access](#-access)
 - [Architecture Summary](#-architecture-summary)
@@ -25,9 +34,11 @@ The focus of this setup is reliability, low power usage, and scalable storage us
 
 - **Raspberry Pi 5** (8GB RAM, Starter Kit)
 - **Powered USB Hub**
-- **Storage**
-  - Seagate External USB Drive – 5TB
-  - WD External USB Drive – 500GB
+- **External Storage**
+  - Seagate USB Drive – 5TB
+  - WD USB Drive – 500GB
+
+This hardware provides sufficient performance for Immich while remaining energy-efficient and always-on.
 
 ---
 
@@ -42,7 +53,7 @@ The focus of this setup is reliability, low power usage, and scalable storage us
 
 ## 💽 Storage Overview
 
-Two external drives are combined into a single logical storage pool using MergerFS.
+Two external USB drives are combined into a single logical storage pool using **MergerFS**.
 
 ```text
 /mnt/storage_pool
@@ -51,19 +62,19 @@ Two external drives are combined into a single logical storage pool using Merger
 Both drives are formatted as **ext4** to ensure:
 
 * Native Linux compatibility
-* Reliable file permissions for Docker
+* Correct file permissions for Docker containers
 * Support for large media files
-* Good performance and stability
+* Good long-term stability and performance
 
 ---
 
 ## 🔗 MergerFS Setup
 
-MergerFS presents multiple disks as one filesystem while automatically distributing files based on available space.
+MergerFS presents multiple disks as a single filesystem while automatically distributing files across them.
 
 ### Drive Mounting
 
-Each disk is mounted using a **systemd mount unit** and referenced by UUID to avoid device name changes across reboots.
+Each physical disk is mounted independently using **systemd mount units** and referenced by **UUID** to avoid device renaming issues on reboot.
 
 Mount points:
 
@@ -78,14 +89,17 @@ The merged filesystem is mounted at:
 /mnt/storage_pool
 ```
 
-Files are written using the **Existing Path, Most Free Space (epmfs)** policy, which keeps related files together while balancing disk usage.
+Files are written using the **Existing Path, Most Free Space (epmfs)** policy, which balances disk usage while keeping related files together.
 
 ---
 
 ## ⚙️ Key MergerFS Options
 
+The following options are used to optimise reliability and Docker compatibility:
+
+* `nonempty` – allows mounting over an existing directory
 * `allow_other` – enables container access
-* `use_ino` – ensures Docker compatibility
+* `use_ino` – ensures correct inode handling for Docker
 * `cache.files=auto-full` – improves metadata performance
 * `category.create=epmfs` – balances writes across disks
 * `cache.statfs=true` – improves disk space reporting
@@ -94,41 +108,55 @@ Files are written using the **Existing Path, Most Free Space (epmfs)** policy, w
 
 ## 📸 Immich Configuration
 
-Immich runs via Docker Compose.
+Immich runs via **Docker Compose**.
 
 ### Upload Storage
 
-Large media files are stored on the MergerFS pool:
+All large media files are stored on the MergerFS pool:
 
 ```env
 UPLOAD_LOCATION=/mnt/storage_pool
 ```
 
-Databases and critical services use Docker-managed volumes on a single disk for data integrity.
+Databases and critical services use Docker-managed volumes on a single disk to prioritise data integrity.
 
 ---
 
 ## 📂 Immich Storage Layout
 
-Immich automatically manages the following directories:
+Immich automatically manages the following directories within the storage pool:
 
-* `library/` – Original media
-* `upload/` – Upload staging
-* `thumbs/` – Thumbnails
+* `library/` – Original photos and videos
+* `upload/` – Temporary upload staging
+* `thumbs/` – Generated thumbnails
 * `encoded-video/` – Transcoded media
-* `profile/` – User avatars
+* `profile/` – User profile images
 * `backups/` – Database backups
 
-Each directory includes a `.immich` marker file used by Immich for validation.
+Each directory contains a `.immich` marker file used by Immich for validation and startup checks.
+
+---
+
+## 🧩 Systemd Mounting
+
+Storage is mounted using **custom systemd unit files** rather than `/etc/fstab`.
+
+This approach ensures:
+
+* Stable UUID-based mounts
+* Predictable boot ordering
+* The MergerFS pool is available before Docker services start
+
+The exact mount and service definitions are stored in the `systemd/` directory within this repository.
 
 ---
 
 ## 🛠️ Operational Notes
 
-* Storage mounts are managed entirely by systemd
-* UUID-based mounting prevents USB renaming issues
-* Docker services depend on the storage pool being available
-* External backups are recommended for long-term safety
+* All storage mounts are managed exclusively by systemd
+* UUID-based mounting avoids USB device renaming issues
+* Docker services depend on the storage pool being mounted
+* External backups are strongly recommended for long-term data safety
 
 ---
 
