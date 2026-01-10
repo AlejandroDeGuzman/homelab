@@ -1,16 +1,16 @@
 # 📸 Immich Server (Raspberry Pi + MergerFS)
 
-This document describes the architecture and configuration of my self-hosted **Immich** photo and video server running on a **Raspberry Pi** using **Docker** and **MergerFS**.
+This document describes the architecture and design of my self-hosted **Immich** photo and video server running on a **Raspberry Pi** using **Docker** and **MergerFS**.
 
 The primary goals of this setup are:
 
 - Low power consumption
-- Reliable, predictable storage
+- Reliable and predictable storage
 - Simple scalability using multiple external disks
 - Minimal operational complexity
 
 This README focuses on **architecture and design decisions**.  
-Detailed configuration files are stored alongside this documentation.
+Detailed configuration files and service definitions are stored alongside this documentation.
 
 ---
 
@@ -27,6 +27,7 @@ Detailed configuration files are stored alongside this documentation.
 - [Operational Notes](#-operational-notes)
 - [Access](#-access)
 - [Architecture Summary](#-architecture-summary)
+- [Raspberry Pi Storage Architecture](#-raspberry-pi-storage-architecture)
 
 ---
 
@@ -38,7 +39,7 @@ Detailed configuration files are stored alongside this documentation.
   - Seagate USB Drive – 5TB
   - WD USB Drive – 500GB
 
-This hardware provides sufficient performance for Immich while remaining energy-efficient and always-on.
+This hardware provides sufficient performance for Immich workloads while remaining energy-efficient and suitable for 24/7 operation.
 
 ---
 
@@ -64,7 +65,7 @@ Both drives are formatted as **ext4** to ensure:
 * Native Linux compatibility
 * Correct file permissions for Docker containers
 * Support for large media files
-* Good long-term stability and performance
+* Long-term stability and good performance
 
 ---
 
@@ -97,13 +98,12 @@ Files are written using the **Existing Path, Most Free Space (epmfs)** policy, w
 
 The following options are used to optimise reliability and Docker compatibility:
 
-* `nonempty` – allows mounting over an existing directory
 * `allow_other` – enables container access
 * `use_ino` – ensures correct inode handling for Docker
 * `cache.files=auto-full` – improves metadata performance
 * `category.create=epmfs` – balances writes across disks
 * `cache.statfs=true` – improves disk space reporting
-* `nonempty` – allows mounting over a non-empty directory
+* `nonempty` – allows mounting over an existing directory
 
 ---
 
@@ -119,7 +119,7 @@ All large media files are stored on the MergerFS pool:
 UPLOAD_LOCATION=/mnt/storage_pool
 ```
 
-Databases and critical services use Docker-managed volumes on a single disk to prioritise data integrity.
+Databases and other critical services use Docker-managed volumes on a single disk to prioritise data integrity.
 
 ---
 
@@ -142,11 +142,11 @@ Each directory contains a `.immich` marker file used by Immich for validation an
 
 Storage is mounted using **custom systemd unit files** rather than `/etc/fstab`.
 
-This approach ensures:
+This approach provides:
 
 * Stable UUID-based mounts
 * Predictable boot ordering
-* The MergerFS pool is available before Docker services start
+* Guaranteed availability of the MergerFS pool before Docker services start
 
 The exact mount and service definitions are stored in the `systemd/` directory within this repository.
 
@@ -156,7 +156,7 @@ The exact mount and service definitions are stored in the `systemd/` directory w
 
 * All storage mounts are managed exclusively by systemd
 * UUID-based mounting avoids USB device renaming issues
-* Docker services depend on the storage pool being mounted
+* Docker services depend on the storage pool being available
 * External backups are strongly recommended for long-term data safety
 
 ---
@@ -170,7 +170,7 @@ The exact mount and service definitions are stored in the `systemd/` directory w
 
 ## 🗂️ Architecture Summary
 
-```
+```text
 External USB Drives
         ↓
      MergerFS
@@ -180,6 +180,39 @@ External USB Drives
  Docker Containers
         ↓
       Immich
+```
+
+---
+
+## 🗄️ Raspberry Pi Storage Architecture
+
+```text
+┌────────────────────────────────────────────┐
+│            Raspberry Pi 5 (OS)             │
+│         Raspberry Pi OS (SD Card)          │
+├────────────────────────────────────────────┤
+│                                            │
+│  ┌───────────────┐   ┌───────────────┐     │
+│  │ Seagate 5TB   │   │  WD 500GB     │     │
+│  │  ext4         │   │  ext4         │     │
+│  └───────┬───────┘   └───────┬───────┘     │
+│          │                   │             │
+│          └──────────┬────────┘             │
+│                     ▼                      │
+│              ┌──────────────┐              │
+│              │   MergerFS   │              │
+│              │  (epmfs)     │              │
+│              └──────┬───────┘              │
+│                     ▼                      │
+│            /mnt/storage_pool               │
+│                     │                      │
+│              Docker Bind Mount             │
+│                     │                      │
+│              ┌──────▼──────┐               │
+│              │   Immich    │               │
+│              └─────────────┘               │
+│                                            │
+└────────────────────────────────────────────┘
 ```
 
 ---
