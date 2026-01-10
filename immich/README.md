@@ -6,6 +6,21 @@ The focus of this setup is reliability, low power usage, and scalable storage us
 
 ---
 
+## 📑 Table of Contents
+
+- [Hardware](#-hardware)
+- [Software Stack](#-software-stack)
+- [Storage Overview](#-storage-overview)
+- [MergerFS Setup](#-mergerfs-setup)
+- [Key MergerFS Options](#-key-mergerfs-options)
+- [Immich Configuration](#-immich-configuration)
+- [Immich Storage Layout](#-immich-storage-layout)
+- [Operational Notes](#-operational-notes)
+- [Access](#-access)
+- [Architecture Summary](#-architecture-summary)
+
+---
+
 ## 🧱 Hardware
 
 - **Raspberry Pi 5** (8GB RAM, Starter Kit)
