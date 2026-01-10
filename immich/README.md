@@ -1,7 +1,3 @@
-
----
-
-````markdown
 # 📸 Immich Server (Raspberry Pi + MergerFS)
 
 This document describes the architecture and configuration of my self-hosted Immich photo server running on a Raspberry Pi using Docker and MergerFS.
@@ -147,6 +143,3 @@ External USB Drives
 **Last Updated:** January 2026
 **Immich Version:** 2.4.1
 **Platform:** Raspberry Pi OS (Bookworm, 64-bit)
-
-```
-
