@@ -74,6 +74,7 @@ Files are written using the **Existing Path, Most Free Space (epmfs)** policy, w
 * `cache.files=auto-full` – improves metadata performance
 * `category.create=epmfs` – balances writes across disks
 * `cache.statfs=true` – improves disk space reporting
+* `nonempty` – allows mounting over a non-empty directory
 
 ---
 
