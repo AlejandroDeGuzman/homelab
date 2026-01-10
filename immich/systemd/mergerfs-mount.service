@@ -1,0 +1,17 @@
+[Unit]
+Description=MergerFS Mount for Immich Storage Pool
+After=media-alejandropi-IMMICH_DISK1.mount media-alejandropi-IMMICH_DISK2.mount
+Requires=media-alejandropi-IMMICH_DISK1.mount media-alejandropi-IMMICH_DISK2.mount
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/bin/mkdir -p /mnt/storage_pool
+ExecStart=/usr/bin/mergerfs \
+  -o nonempty,allow_other,use_ino,cache.files=auto-full,category.create=epmfs,drop>
+  /media/alejandropi/IMMICH_DISK1:/media/alejandropi/IMMICH_DISK2 \
+  /mnt/storage_pool
+ExecStop=/bin/umount /mnt/storage_pool
+
+[Install]
+WantedBy=multi-user.target

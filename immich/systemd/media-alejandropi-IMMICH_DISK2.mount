@@ -1,0 +1,12 @@
+[Unit]
+Description=Immich Storage Disk 2 (WD)
+After=local-fs.target
+
+[Mount]
+What=/dev/disk/by-uuid/1a0b5bbc-6c11-47ea-838c-b6320d940fb1
+Where=/media/alejandropi/IMMICH_DISK2
+Type=ext4
+Options=defaults
+
+[Install]
+WantedBy=multi-user.target
