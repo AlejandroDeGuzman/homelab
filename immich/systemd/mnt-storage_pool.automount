@@ -1,0 +1,8 @@
+[Unit]
+Description=Automount MergerFS Storage Pool
+
+[Automount]
+Where=/mnt/storage_pool
+
+[Install]
+WantedBy=multi-user.target
