@@ -1,0 +1,13 @@
+[Unit]
+Description=MergerFS Storage Pool
+RequiresMountsFor=/media/alejandropi/IMMICH_DISK1 /media/alejandropi/IMMICH_DISK2
+After=local-fs.target
+
+[Mount]
+What=/media/alejandropi/IMMICH_DISK1:/media/alejandropi/IMMICH_DISK2
+Where=/mnt/storage_pool
+Type=fuse.mergerfs
+Options=nonempty,allow_other,use_ino,cache.files=auto-full,category.create=epmfs,d>
+
+[Install]
+WantedBy=multi-user.target
