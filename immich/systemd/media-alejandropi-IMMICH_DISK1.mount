@@ -1,12 +1,13 @@
 [Unit]
 Description=Immich Storage Disk 1 (Seagate)
-After=local-fs.target
+After=dev-disk-by\x2duuid-92bc1ec1\x2d42a5\x2d4c21\x2d9590\x2d3ca2af12d28e.device
+Requires=dev-disk-by\x2duuid-92bc1ec1\x2d42a5\x2d4c21\x2d9590\x2d3ca2af12d28e.devi>
 
 [Mount]
 What=/dev/disk/by-uuid/92bc1ec1-42a5-4c21-9590-3ca2af12d28e
 Where=/media/alejandropi/IMMICH_DISK1
 Type=ext4
-Options=defaults
+Options=defaults,nofail,x-systemd.device-timeout=10
 
 [Install]
 WantedBy=multi-user.target
