@@ -1,7 +1,7 @@
 [Unit]
 Description=MergerFS Storage Pool
 RequiresMountsFor=/media/alejandropi/IMMICH_DISK1 /media/alejandropi/IMMICH_DISK2
-After=local-fs.target
+After=media-alejandropi-IMMICH_DISK1.mount media-alejandropi-IMMICH_DISK2.mount
 
 [Mount]
 What=/media/alejandropi/IMMICH_DISK1:/media/alejandropi/IMMICH_DISK2
