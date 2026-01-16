@@ -1,58 +1,58 @@
 # 📸 Immich Server — Raspberry Pi + MergerFS
 
-This document describes the **architecture, storage design, and operational decisions** behind my self-hosted **Immich** photo and video server running on a **Raspberry Pi** using **Docker** and **MergerFS**.
+This repository documents the **architecture, storage design, and operational decisions** behind my self-hosted **Immich** photo and video server running on a **Raspberry Pi** using **Docker**, **systemd**, and **MergerFS**.
 
 The primary goals of this setup are:
 
-* Low power consumption (24/7 operation)
-* Reliable and predictable storage
-* Simple horizontal scalability using external disks
-* Minimal operational and maintenance complexity
-* Correct behaviour under systemd and Docker
+- Low power consumption (24/7 operation)
+- Reliable and deterministic storage behaviour
+- Simple horizontal scalability using external disks
+- Minimal operational and maintenance complexity
+- Correct, race-free interaction between systemd, Docker, and FUSE filesystems
 
-This README focuses on **architecture and design decisions**.
+This README focuses on **architecture and design decisions**.  
 Exact configuration files (Docker Compose, systemd units) live alongside this documentation.
 
 ---
 
 ## 📑 Table of Contents
 
-* [Hardware](#-hardware)
-* [Software Stack](#-software-stack)
-* [Storage Overview](#-storage-overview)
-* [MergerFS Design](#-mergerfs-design)
-* [Key MergerFS Options](#-key-mergerfs-options)
-* [Immich Configuration](#-immich-configuration)
-* [Immich Storage Layout](#-immich-storage-layout)
-* [Systemd Mounting Strategy](#-systemd-mounting-strategy)
-* [Why Automount Is Used](#-why-automount-is-used)
-* [Operational Notes](#-operational-notes)
-* [Access](#-access)
-* [Architecture Summary](#-architecture-summary)
-* [Raspberry Pi Storage Architecture](#-raspberry-pi-storage-architecture)
+- [Hardware](#-hardware)
+- [Software Stack](#-software-stack)
+- [Storage Overview](#-storage-overview)
+- [MergerFS Design](#-mergerfs-design)
+- [Key MergerFS Options](#-key-mergerfs-options)
+- [Immich Configuration](#-immich-configuration)
+- [Immich Storage Layout](#-immich-storage-layout)
+- [Systemd Mounting Strategy](#-systemd-mounting-strategy)
+- [Why Automount Is Used](#-why-automount-is-used)
+- [Failure and Recovery Behaviour](#-failure-and-recovery-behaviour)
+- [Operational Notes](#-operational-notes)
+- [Access](#-access)
+- [Architecture Summary](#-architecture-summary)
+- [Raspberry Pi Storage Architecture](#-raspberry-pi-storage-architecture)
 
 ---
 
 ## 🧱 Hardware
 
-* **Raspberry Pi 5** (8GB RAM)
-* **Powered USB Hub**
-* **External Storage**
+- **Raspberry Pi 5** (8GB RAM)
+- **Powered USB Hub**
+- **External Storage**
+  - Seagate USB Drive — 5TB
+  - WD USB Drive — 500GB
 
-  * Seagate USB Drive — 5TB
-  * WD USB Drive — 500GB
-
-This hardware provides sufficient throughput for Immich workloads while remaining energy-efficient and suitable for continuous operation.
+A powered hub is used to ensure reliable USB spin-up and avoid undervoltage issues during boot.
 
 ---
 
 ## 🧰 Software Stack
 
-* **Immich** (v2.4.1)
-* **Docker & Docker Compose**
-* **MergerFS**
-* **systemd**
-* **Raspberry Pi OS** (Bookworm, 64-bit)
+- **Immich** (v2.4.1)
+- **Docker & Docker Compose**
+- **MergerFS**
+- **systemd**
+- **Raspberry Pi OS** (Bookworm, 64-bit)
 
 ---
 
@@ -60,18 +60,20 @@ This hardware provides sufficient throughput for Immich workloads while remainin
 
 Two external USB drives are combined into a **single logical storage pool** using **MergerFS**.
 
-```text
+```
+
 /mnt/storage_pool
+
 ```
 
 Both drives are formatted as **ext4**, providing:
 
-* Native Linux compatibility
-* Correct Unix permissions for Docker containers
-* Support for large media files
-* Long-term stability and predictable performance
+- Native Linux compatibility
+- Correct Unix permissions for Docker containers
+- Support for large media files
+- Long-term stability and predictable behaviour
 
-The underlying disks remain fully readable and usable independently of MergerFS.
+Each disk remains fully readable and mountable **independently of MergerFS**.
 
 ---
 
@@ -85,37 +87,49 @@ Each disk is mounted independently using **systemd `.mount` units**, referenced 
 
 Mount points:
 
-* `/media/alejandropi/IMMICH_DISK1` — Seagate 5TB
-* `/media/alejandropi/IMMICH_DISK2` — WD 500GB
+- `/media/alejandropi/IMMICH_DISK1` — Seagate 5TB
+- `/media/alejandropi/IMMICH_DISK2` — WD 500GB
+
+These mounts:
+
+- Depend only on their underlying block devices
+- Are marked `nofail` to avoid blocking boot
+- Do **not** participate in `local-fs.target` ordering
+
+This prevents boot-time dependency cycles and race conditions.
+
+---
 
 ### Logical Storage Pool
 
 The merged filesystem is exposed at:
 
-```text
-/mnt/storage_pool
 ```
+
+/mnt/storage_pool
+
+````
 
 Files are written using the **Existing Path, Most Free Space (epmfs)** policy, which:
 
-* Distributes new data based on available space
-* Keeps related directory trees on the same disk
-* Avoids unnecessary cross-disk fragmentation
+- Distributes new data based on available space
+- Keeps directory trees on a single disk
+- Avoids unnecessary cross-disk fragmentation
 
 ---
 
 ## ⚙️ Key MergerFS Options
 
-The following options are used to optimise reliability, correctness, and Docker compatibility:
+The following options prioritise **correctness, predictability, and Docker compatibility**:
 
-* `allow_other` — allows Docker containers to access the filesystem
-* `use_ino` — ensures stable inode behaviour for Docker and databases
-* `cache.files=auto-full` — improves metadata performance
-* `category.create=epmfs` — balanced write placement
-* `cache.statfs=true` — accurate disk space reporting
-* `nonempty` — allows mounting over an existing directory
+- `allow_other` — allows Docker containers to access the filesystem
+- `use_ino` — ensures stable inode behaviour for Docker and databases
+- `cache.files=auto-full` — improves metadata performance
+- `category.create=epmfs` — balanced write placement
+- `cache.statfs=true` — accurate disk space reporting
+- `nonempty` — allows mounting over an existing directory
 
-These options prioritise **correctness over aggressive caching**, which is critical for long-running services.
+Aggressive caching options are intentionally avoided.
 
 ---
 
@@ -129,9 +143,9 @@ All large media files are stored on the MergerFS pool:
 
 ```env
 UPLOAD_LOCATION=/mnt/storage_pool
-```
+````
 
-Databases and critical internal services use Docker-managed volumes on a single disk to prioritise consistency and simplify recovery.
+Databases and internal services use Docker-managed volumes on a single disk to prioritise consistency and simplify recovery.
 
 ---
 
@@ -146,7 +160,7 @@ Immich manages the following directories within the storage pool:
 * `profile/` — user profile images
 * `backups/` — database backups
 
-Each directory contains a `.immich` marker file used by Immich for validation and startup checks.
+Each directory contains a `.immich` marker file used for validation and startup checks.
 
 ---
 
@@ -157,53 +171,81 @@ All storage is managed **exclusively by systemd**, not `/etc/fstab`.
 This provides:
 
 * Stable UUID-based mounts
-* Clear dependency management
-* Predictable interaction with Docker
-* Better failure visibility and recovery
+* Explicit dependency modelling
+* Deterministic behaviour across reboots
+* Clear interaction boundaries with Docker
 
-### MergerFS is mounted using a native `.mount` unit:
+### Disk Mounts
+
+Each physical disk is mounted using a dedicated `.mount` unit that:
+
+* Depends only on its block device
+* Uses `nofail` and bounded timeouts
+* Does **not** reference `local-fs.target`
+
+This avoids systemd ordering cycles and non-deterministic behaviour.
+
+---
+
+### MergerFS Mount
+
+MergerFS is mounted using a native systemd unit:
 
 * `mnt-storage_pool.mount`
 * Filesystem type: `fuse.mergerfs`
+* Depends on the physical disk mounts via `RequiresMountsFor=`
 
-This allows systemd to treat MergerFS as a **real filesystem**, not just a background process.
+systemd therefore treats MergerFS as a **first-class filesystem**, not a background process.
 
 ---
 
 ## 🧠 Why Automount Is Used
 
-MergerFS is a **FUSE filesystem**, which makes it sensitive to boot-time race conditions.
+MergerFS is a **FUSE filesystem**, which makes it sensitive to boot-time ordering.
 
-Instead of forcing MergerFS to mount during boot, this setup uses:
+Instead of eager mounting during boot, this setup uses:
 
-```text
+```
 mnt-storage_pool.automount
 ```
 
-### Why this matters
+### Behaviour
 
 * `.automount` creates a kernel-level trigger
 * The filesystem is mounted **only when first accessed**
 * Docker accessing `/mnt/storage_pool` automatically triggers the mount
-* All USB devices, permissions, and services are fully initialised first
+* All USB devices and permissions are fully initialised beforehand
 
-This avoids:
+### Benefits
 
-* Boot-time race conditions
-* Fragile service-based mounts
-* Silent failures where a mount never appears
-* Docker starting before storage is ready
+This approach:
 
-In practice, this results in **more reliable behaviour than eager mounting**.
+* Eliminates boot-time race conditions
+* Prevents silent mount failures
+* Avoids blocking `local-fs.target`
+* Produces deterministic behaviour across reboots
+
+In practice, automount is **more reliable than eager mounting** for FUSE filesystems.
+
+---
+
+## 🔁 Failure and Recovery Behaviour
+
+* If a disk is missing at boot, the system still boots normally
+* When the disk appears, systemd mounts it automatically
+* MergerFS mounts on first access once all required disks are present
+* Docker services can be configured to require `/mnt/storage_pool`
+
+No manual SSH intervention is required after reboot.
 
 ---
 
 ## 🛠️ Operational Notes
 
-* All disks are mounted via UUIDs
-* MergerFS never owns or moves data — it only presents a unified view
+* All mounts use UUIDs
+* MergerFS never migrates or owns data
 * Each disk remains independently readable
-* Docker containers implicitly trigger the MergerFS mount via automount
+* Docker implicitly triggers MergerFS via automount
 * External backups are strongly recommended
 
 ---
@@ -217,10 +259,10 @@ In practice, this results in **more reliable behaviour than eager mounting**.
 
 ## 🗂️ Architecture Summary
 
-```text
+```
 External USB Drives
         ↓
-     systemd mounts
+  systemd device-based mounts
         ↓
      MergerFS (automount)
         ↓
@@ -235,7 +277,7 @@ External USB Drives
 
 ## 🗄️ Raspberry Pi Storage Architecture
 
-```text
+```
 ┌────────────────────────────────────────────┐
 │            Raspberry Pi 5 (OS)             │
 │         Raspberry Pi OS (SD Card)          │
