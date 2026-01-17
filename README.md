@@ -6,13 +6,15 @@ It contains configuration files, setup notes, and documentation for the services
 
 This repository acts as a **living reference** for how my homelab is designed, configured, and maintained, and will evolve over time as new services are added or existing ones are improved.
 
+<img width="1810" height="937" alt="image" src="https://github.com/user-attachments/assets/4bfe66e2-c266-4756-8d46-069e5033b7d7" />
+
 ---
 
 ## 📑 Table of Contents
 
 * [Documentation Index](#-documentation-index)
 * [Services](#-services)
-* [Hardware Overview](#-hardware-overview)
+* [Hardware Overview](#-ardware-overview)
 * [Storage Layout](#-storage-layout)
 * [Goals](#-goals)
 * [What This Repository Contains](#-what-this-repository-contains)
