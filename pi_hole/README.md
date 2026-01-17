@@ -34,26 +34,6 @@ sudo dhclient wlan0
 
 ---
 
-## Verification
-
-* LAN / Subnet Routing:
-
-```bash
-ping 192.168.0.50
-curl http://192.168.0.50/admin
-```
-
-* Tailscale Tailnet:
-
-```bash
-ping <Pi-Tailscale-IP>
-curl http://192.168.0.50/admin
-```
-
-* Confirms DNS resolves correctly in both scenarios
-
----
-
 ## Notes
 
 * Static IP replaced by DHCP reservation for reliability

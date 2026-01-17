@@ -73,14 +73,3 @@ Tailscale provides a **private VPN overlay** connecting all homelab devices. Its
 3. **Exit Node:** Route all internet traffic securely through the Raspberry Pi when on public or untrusted networks
 
 ---
-
-## 6. Design Principles & Best Practices
-
-* Minimise exposure to the public internet
-* Keep the network simple and maintainable
-* Use subnet routing for trusted devices only
-* Monitor Pi-hole and network traffic for anomalies
-* Leverage Tailscale ACLs for fine-grained access control
-* Use the exit node selectively for secure browsing on untrusted networks
-
----
