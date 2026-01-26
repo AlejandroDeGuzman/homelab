@@ -6,7 +6,7 @@ It contains configuration files, setup notes, and documentation for the services
 
 This repository acts as a **living reference** for how my homelab is designed, configured, and maintained, and will evolve over time as new services are added or existing ones are improved.
 
-<img width="1810" height="937" alt="image" src="https://github.com/user-attachments/assets/4bfe66e2-c266-4756-8d46-069e5033b7d7" />
+<img width="1382" height="748" alt="image" src="https://github.com/user-attachments/assets/a05074a4-c849-4c51-acd6-672cc5d79afc" />
 
 ---
 
