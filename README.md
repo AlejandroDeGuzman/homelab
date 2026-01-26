@@ -1,4 +1,4 @@
-# 🏠 Homelab
+# Homelab
 
 This repository documents my personal homelab setup.
 
@@ -23,7 +23,7 @@ This repository acts as a **living reference** for how my homelab is designed, c
 
 ---
 
-## 📚 Documentation Index
+## Documentation Index
 
 Detailed documentation and notes are organised by service and topic.
 Each directory contains its own `README.md` with architecture details, configuration, and operational notes.
@@ -36,7 +36,7 @@ Each directory contains its own `README.md` with architecture details, configura
 
 ---
 
-## 🚀 Services
+## Services
 
 ### Currently Running
 
@@ -50,7 +50,7 @@ Each directory contains its own `README.md` with architecture details, configura
 
 ---
 
-## 🖥️ Hardware Overview
+## Hardware Overview
 
 ### Raspberry Pi
 
@@ -84,7 +84,7 @@ Each directory contains its own `README.md` with architecture details, configura
 
 ---
 
-## 💾 Storage Layout
+## Storage Layout
 
 ### Raspberry Pi
 
@@ -112,7 +112,7 @@ Each directory contains its own `README.md` with architecture details, configura
 
 ---
 
-## 📌 Goals
+## Goals
 
 * Self-host open-source alternatives to common cloud services
 * Learn more about Linux, networking, storage, and infrastructure
@@ -130,7 +130,7 @@ Each directory contains its own `README.md` with architecture details, configura
 
 ---
 
-## 🌐 Networking
+## Networking
 
 All networking details, including Tailscale, subnet routing, exit node usage, and Pi-hole integration, are documented in [`networking/README.md`](networking/README.md).
 
@@ -138,7 +138,7 @@ This keeps the main README clean while providing a **full reference for secure r
 
 ---
 
-## 🛠️ Notes
+## Notes
 
 * Secrets and sensitive values are **not** committed to this repository
 * This is an evolving project intended for learning, experimentation, and long-term maintenance
