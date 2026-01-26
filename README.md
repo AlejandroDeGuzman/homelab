@@ -10,7 +10,7 @@ This repository acts as a **living reference** for how my homelab is designed, c
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
 * [Documentation Index](#-documentation-index)
 * [Services](#-services)
@@ -110,35 +110,4 @@ Each directory contains its own `README.md` with architecture details, configura
   * Supporting application data
 * Containers and VMs managed independently from the Raspberry Pi
 
----
 
-## Goals
-
-* Self-host open-source alternatives to common cloud services
-* Learn more about Linux, networking, storage, and infrastructure
-* Reduce dependence on proprietary platforms and ecosystems
-* Maintain clear, reproducible, and maintainable documentation
-
----
-
-## 📁 What This Repository Contains
-
-* Service configuration files (e.g., Docker / Docker Compose)
-* Infrastructure and system configuration
-* Setup notes and troubleshooting guides
-* Experiments and learning notes
-
----
-
-## Networking
-
-All networking details, including Tailscale, subnet routing, exit node usage, and Pi-hole integration, are documented in [`networking/README.md`](networking/README.md).
-
-This keeps the main README clean while providing a **full reference for secure remote access, LAN integration, and homelab network topology**.
-
----
-
-## Notes
-
-* Secrets and sensitive values are **not** committed to this repository
-* This is an evolving project intended for learning, experimentation, and long-term maintenance
