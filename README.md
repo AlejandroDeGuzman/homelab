@@ -7,6 +7,9 @@ It contains configuration files, setup notes, and documentation for the services
 This repository acts as a **living reference** for how my homelab is designed, configured, and maintained, and will evolve over time as new services are added or existing ones are improved.
 
 <img width="1382" height="748" alt="image" src="https://github.com/user-attachments/assets/a05074a4-c849-4c51-acd6-672cc5d79afc" />
+<img width="511" height="484" alt="image" src="https://github.com/user-attachments/assets/f1fdbe69-c47c-493c-92eb-42dc6a87a42f" />
+
+*(It is quite small right now. Have not yet set the old gaming laptop yet as a Proxmox server)*
 
 ---
 
