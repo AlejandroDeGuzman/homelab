@@ -9,6 +9,13 @@
 ## Tailscale Functions
 1. **Subnet routing**: Remote access to entire home LAN without installing Tailscale on each device
 2. **Exit node**: Route all internet traffic through home network on untrusted WiFi
+3. **Tailscale SSH**: Direct SSH access to the Raspberry Pi through the Tailnet
+
+## Raspberry Pi Tailscale Configuration
+- Tailscale device name: `pi-immich`
+- Advertised routes: `192.168.0.0/24`, `0.0.0.0/0`, and `::/0`
+- Tailscale SSH is enabled
+- Raspberry Pi remains reachable through `alejandropi@raspberrypi`
 
 ## DNS
 - Pi-hole on Raspberry Pi

@@ -7,7 +7,7 @@ After=media-alejandropi-IMMICH_DISK1.mount media-alejandropi-IMMICH_DISK2.mount
 What=/media/alejandropi/IMMICH_DISK1:/media/alejandropi/IMMICH_DISK2
 Where=/mnt/storage_pool
 Type=fuse.mergerfs
-Options=nonempty,allow_other,use_ino,cache.files=auto-full,category.create=epmfs,d>
+Options=nonempty,allow_other,use_ino,cache.files=auto-full,category.create=epmfs,dropcacheonclose=true,cache.statfs=true
 
 [Install]
 WantedBy=multi-user.target

@@ -46,6 +46,9 @@ Each directory contains its own `README.md` with architecture details, configura
 * **Immich** — Self-hosted photo and video management (Raspberry Pi)
 * **Pi-hole** — Network-wide ad blocking and DNS filtering (Raspberry Pi)
 * **Tailscale** — VPN used for remote access, subnet routing, and secure tunnelling
+* **Paperless-ngx** — Document management and OCR (Raspberry Pi)
+* **Beszel** — Homelab monitoring (Raspberry Pi)
+* **Homepage** — Homelab dashboard (Raspberry Pi)
 
 ### Planned / In Progress
 
@@ -99,10 +102,13 @@ Each directory contains its own `README.md` with architecture details, configura
 
   * External USB drives pooled using **MergerFS**
   * Mounted at `/mnt/storage_pool`
+  * Immich uploads stored at `/mnt/storage_pool/immich/uploads`
 
 * **Application Data**
 
   * Large datasets (e.g., Immich photo uploads) stored on the MergerFS pool
+  * Immich PostgreSQL data stored at `/media/alejandropi/DA25-5BDB/immich-db` on the Raspberry Pi root filesystem
+  * Paperless-ngx data stored on a separate mounted USB drive
 
 ### Old Gaming Laptop
 
@@ -112,5 +118,4 @@ Each directory contains its own `README.md` with architecture details, configura
   * Nextcloud file data
   * Supporting application data
 * Containers and VMs managed independently from the Raspberry Pi
-
 
