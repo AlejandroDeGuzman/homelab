@@ -15,7 +15,7 @@ Network-wide DNS filtering running on Raspberry Pi, also serving as Tailscale su
 - Pi-hole blocking is enabled (live `pihole status`)
 
 ## Remote Access
-1. Tailscale Tailnet: Direct Pi access via Tailscale IP
+1. Tailscale Tailnet: Direct Pi access via Tailnet device name
 2. Subnet Routing: LAN access via Pi gateway as a Tailscale Exit Node (allows me to configure ISP router settings for the LAN)
 3. Tailscale Serve: `https://pi-immich.tail0ba569.ts.net:8445` proxies `http://localhost:80`
 

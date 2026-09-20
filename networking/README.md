@@ -3,7 +3,7 @@
 ## Architecture
 - **Raspberry Pi 5**: Tailscale subnet router + exit node, Pi-hole DNS
 - **MSI Gaming Laptop**: Linux Mint host running Nextcloud through Snap
-- **Home LAN**: `192.168.0.0/24` via TP-Link router
+- **Home LAN** via TP-Link router (subnet routed over Tailscale)
 - **Tailscale**: Private VPN overlay
 
 ## Tailscale Functions
@@ -15,7 +15,7 @@
 ## Raspberry Pi Tailscale Configuration
 - Tailscale device name: `pi-immich`
 - LAN via `wlan0` (`eth0` down)
-- Advertised routes: `192.168.0.0/24`, `0.0.0.0/0`, and `::/0`
+- Advertised routes: home LAN subnet, IPv4 exit, and IPv6 exit
 - Tailscale SSH is enabled
 - Raspberry Pi remains reachable through `alejandropi@raspberrypi`
 
