@@ -34,6 +34,7 @@ Each directory contains its own `README.md` with architecture details, configura
 ### Services
 
 * **Immich:** [`immich/README.md`](immich/README.md)
+* **Nextcloud:** [`nextcloud/README.md`](nextcloud/README.md)
 * **Pi-hole:** [`pi_hole/README.md`](pi_hole/README.md)
 * **Networking:** [`networking/README.md`](networking/README.md)
 
@@ -43,16 +44,13 @@ Each directory contains its own `README.md` with architecture details, configura
 
 ### Currently Running
 
-* **Immich** — Self-hosted photo and video management (Raspberry Pi)
-* **Pi-hole** — Network-wide ad blocking and DNS filtering (Raspberry Pi)
-* **Tailscale** — VPN used for remote access, subnet routing, and secure tunnelling
-* **Paperless-ngx** — Document management and OCR (Raspberry Pi)
-* **Beszel** — Homelab monitoring (Raspberry Pi)
-* **Homepage** — Homelab dashboard (Raspberry Pi)
-
-### Planned / In Progress
-
-* **Nextcloud** — File storage and collaboration
+* **Immich** — Self-hosted photo and video management (Raspberry Pi, `v3.2.2`, port `2283`)
+* **Pi-hole** — Network-wide ad blocking and DNS filtering (Raspberry Pi, Core `v6.4.1`, port `80`)
+* **Tailscale** — VPN used for remote access, subnet routing, and secure tunnelling (Serve `:8443` Immich, `:8444` Homepage, `:8445` Pi-hole)
+* **Paperless-ngx** — Document management and OCR (Raspberry Pi, `3.2.0`, port `8000`)
+* **Beszel** — Homelab monitoring (Raspberry Pi, port `8090`)
+* **Homepage** — Homelab dashboard (Raspberry Pi, port `3000`)
+* **Nextcloud** — File storage and collaboration (MSI gaming laptop)
 
 ---
 
@@ -61,32 +59,34 @@ Each directory contains its own `README.md` with architecture details, configura
 ### Raspberry Pi
 
 * **Model:** Raspberry Pi 5 (8GB RAM, Starter Kit)
+* **System:** Debian 12 (bookworm), `6.12.109+rpt-rpi-2712` aarch64, hostname `raspberrypi`
+* **Network:** `wlan0` LAN, Tailscale (`pi-immich`)
 * **Storage:**
 
-  * 500GB WD external USB drive
-  * 5TB Seagate external USB drive
-  * Powered USB hub for reliable external drive connectivity
+  * 4.5T Seagate external USB drive (`IMMICH_DISK1`)
+  * 465.7G WD external USB drive (`IMMICH_DISK2`)
+  * 119.2G external USB SSD (`/mnt/immich_ssd`)
+  * 119.1G SD card (boot + root)
 * **Usage:**
 
   * Always-on, low-power host
-  * Runs Immich and Pi-hole
-* **Boot Medium:** SD card
+  * Runs Immich, Pi-hole, Paperless-ngx, Beszel, and Homepage
+* **Boot Medium:** SD card (root `117G`, `65G` used, `47G` free)
 
-### Old Gaming Laptop
+### MSI Gaming Laptop
 
 * **CPU:** Intel Core i5-8300H
 * **RAM:** 8GB
 * **GPU:** NVIDIA GTX 1050 (2GB)
 * **Storage:**
 
-  * 512GB NVMe SSD
+  * 500GB Crucial MX500 SSD
   * 1TB HDD
 * **Usage:**
 
-  * Repurposed as a homelab server
-  * Runs **Proxmox** as a hypervisor
-  * Hosts Docker containers and/or VMs for heavier or isolated workloads
-  * Planned host for Nextcloud
+  * Runs Linux Mint 22.3
+  * Runs Nextcloud through Snap
+  * Available through Tailscale
 
 ---
 
@@ -107,15 +107,22 @@ Each directory contains its own `README.md` with architecture details, configura
 * **Application Data**
 
   * Large datasets (e.g., Immich photo uploads) stored on the MergerFS pool
-  * Immich PostgreSQL data stored at `/media/alejandropi/DA25-5BDB/immich-db` on the Raspberry Pi root filesystem
-  * Paperless-ngx data stored on a separate mounted USB drive
+  * Immich PostgreSQL lives on the external USB SSD at `/mnt/immich_ssd/immich-db` (`5.2G`)
+  * SSD mounted by `mnt-immich_ssd.mount` (UUID `aca95224-5c5d-4809-b4e2-8932762a0e09`)
+  * Older database copy remains at `/mnt/immich_ssd/immich-db-old` (`872M`)
+  * Stale SD-card directories are not mounts and are not used: `/media/alejandropi/DA25-5BDB/immich-db` and `/media/alejandropi/aca95224-5c5d-4809-b4e2-8932762a0e09`
+  * Paperless-ngx compose and data live at `/mnt/immich_ssd/paperless-ngx`
+  * Paperless-ngx container binds still reference `/media/alejandropi/aca95224-5c5d-4809-b4e2-8932762a0e09/paperless-ngx` paths
+  * Daily Immich database backups stored at `/mnt/storage_pool/immich/uploads/backups`
 
-### Old Gaming Laptop
+### MSI Gaming Laptop
 
-* Local disks managed by Proxmox
-* Planned storage for:
+* Linux Mint root filesystem on the 500GB Crucial MX500 SSD
+* Nextcloud application, database, and user data stored on the SSD
+* 1TB HDD present for future storage
+* Nextcloud runs through Snap, not Docker
 
-  * Nextcloud file data
-  * Supporting application data
-* Containers and VMs managed independently from the Raspberry Pi
+* Current Nextcloud storage:
 
+  * Data directory: `/var/snap/nextcloud/common/nextcloud/data`
+  * Host filesystem: `/dev/sda2`

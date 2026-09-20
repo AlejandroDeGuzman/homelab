@@ -1,0 +1,13 @@
+[Unit]
+Description=Immich SSD
+After=dev-disk-by\x2duuid-aca95224\x2d5c5d\x2d4809\x2db4e2\x2d8932762a0e09.device
+Requires=dev-disk-by\x2duuid-aca95224\x2d5c5d\x2d4809\x2db4e2\x2d8932762a0e09.device
+
+[Mount]
+What=/dev/disk/by-uuid/aca95224-5c5d-4809-b4e2-8932762a0e09
+Where=/mnt/immich_ssd
+Type=ext4
+Options=defaults,nofail,x-systemd.device-timeout=10
+
+[Install]
+WantedBy=multi-user.target
