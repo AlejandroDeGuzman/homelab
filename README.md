@@ -42,7 +42,7 @@ Each directory contains its own `README.md` with architecture details, configura
 * **Immich** — Self-hosted photo and video management (Raspberry Pi, `v3.2.2`, port `2283`)
 * **Pi-hole** — Network-wide ad blocking and DNS filtering (Raspberry Pi, Core `v6.4.1`, port `80`)
 * **Tailscale** — VPN used for remote access, subnet routing, and secure tunnelling (Serve `:8443` Immich, `:8444` Homepage, `:8445` Pi-hole)
-* **Paperless-ngx** — Document management and OCR (Raspberry Pi, `3.2.0`, port `8000`)
+* **Paperless-ngx** — Document management and OCR (Raspberry Pi, `3.3.1`, port `8000`)
 * **Beszel** — Homelab monitoring (Raspberry Pi, port `8090`)
 * **Homepage** — Homelab dashboard (Raspberry Pi, port `3000`)
 * **Nextcloud** — File storage and collaboration (MSI gaming laptop)
@@ -106,8 +106,8 @@ Each directory contains its own `README.md` with architecture details, configura
   * SSD mounted by `mnt-immich_ssd.mount` (UUID `aca95224-5c5d-4809-b4e2-8932762a0e09`)
   * Older database copy remains at `/mnt/immich_ssd/immich-db-old` (`872M`)
   * Stale SD-card directories are not mounts and are not used: `/media/alejandropi/DA25-5BDB/immich-db` and `/media/alejandropi/aca95224-5c5d-4809-b4e2-8932762a0e09`
-  * Paperless-ngx compose and data live at `/mnt/immich_ssd/paperless-ngx`
-  * Paperless-ngx container binds still reference `/media/alejandropi/aca95224-5c5d-4809-b4e2-8932762a0e09/paperless-ngx` paths
+  * Paperless-ngx compose and data live at `/mnt/immich_ssd/paperless-ngx` (`3.3.1`, SQLite, `COMPOSE_PROJECT_NAME=paperless`)
+  * Paperless-ngx binds migrated `2026-10-13` from `/media/alejandropi/aca95224-5c5d-4809-b4e2-8932762a0e09/paperless-ngx` to `/mnt/immich_ssd/paperless-ngx`; old `/media` copy removed, backups at `~/paperless-media-live-backup-20261013.tgz` and `~/paperless-mnt-backup-20261013.tgz`
   * Daily Immich database backups stored at `/mnt/storage_pool/immich/uploads/backups`
 
 ### MSI Gaming Laptop
