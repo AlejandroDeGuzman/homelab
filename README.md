@@ -108,6 +108,7 @@ Each directory contains its own `README.md` with architecture details, configura
   * Stale SD-card directories are not mounts and are not used: `/media/alejandropi/DA25-5BDB/immich-db` and `/media/alejandropi/aca95224-5c5d-4809-b4e2-8932762a0e09`
   * Paperless-ngx compose and data live at `/mnt/immich_ssd/paperless-ngx` (`3.3.1`, SQLite, `COMPOSE_PROJECT_NAME=paperless`)
   * Paperless-ngx binds migrated `2026-10-13` from `/media/alejandropi/aca95224-5c5d-4809-b4e2-8932762a0e09/paperless-ngx` to `/mnt/immich_ssd/paperless-ngx`; old `/media` copy removed, backups at `~/paperless-media-live-backup-20261013.tgz` and `~/paperless-mnt-backup-20261013.tgz`
+  * Bulk Docker update script tracked at [`scripts/update-all.sh`](scripts/update-all.sh), deployed on Pi at `~/update-all.sh` (pull + up all compose projects, prune images)
   * Daily Immich database backups stored at `/mnt/storage_pool/immich/uploads/backups`
 
 ### MSI Gaming Laptop
