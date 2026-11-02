@@ -56,6 +56,8 @@ The live Raspberry Pi units are tracked in [`systemd/`](systemd/):
 - `mnt-immich_ssd.mount`
 - `mnt-storage_pool.mount`
 - `mnt-storage_pool.automount`
+- `zram-swap.service`
+- `zram-swap-setup.sh`
 
 Check the storage units:
 
@@ -107,3 +109,38 @@ findmnt -T /mnt/immich_ssd
 df -hT / /mnt/storage_pool /mnt/immich_ssd
 curl -s http://localhost:2283/api/server/version
 ```
+
+## Memory / Swap (zram)
+
+### Why
+Raspberry Pi 5 has 8GB RAM. Bulk photo/video uploads run `immich_server` + `ffmpeg` (video processing) + `immich_machine_learning` at once. During a large upload, `ffmpeg` was killed by the kernel OOM killer (Nov 1 19:59:47, total-vm ~5.5GB, anon-rss ~3.5GB). The only swap was a 512MB `/var/swap` file on the SD card, running ~92% used, so there was no RAM headroom.
+
+### Fix
+Added zram compressed-RAM swap as a high-priority swap device.
+
+- `/dev/zram0`, 2GiB uncompressed capacity, pages compressed in RAM (fast, no SD wear).
+- Priority `100`, so the kernel uses zram before the disk swap.
+- Existing `/var/swap` (512MB, priority `-2`) kept as a disk fallback.
+
+Tracked in this repo under [`immich/systemd/`](systemd/), installed on the Pi at the live paths:
+
+- `immich/systemd/zram-swap-setup.sh` → `/usr/local/sbin/zram-swap-setup.sh` — idempotent setup script: `modprobe zram`, set `zram0` size 2G, `mkswap`, `swapon --priority 100`. Skips everything if zram is already active, so it is safe to run on every boot.
+- `immich/systemd/zram-swap.service` → `/etc/systemd/system/zram-swap.service` — systemd oneshot, `enabled` at boot.
+
+Install on Pi:
+```bash
+sudo cp immich/systemd/zram-swap-setup.sh /usr/local/sbin/zram-swap-setup.sh
+sudo chmod +x /usr/local/sbin/zram-swap-setup.sh
+sudo cp immich/systemd/zram-swap.service /etc/systemd/system/zram-swap.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now zram-swap.service
+```
+
+Check:
+```bash
+cat /proc/swaps
+free -h
+systemctl status zram-swap.service
+```
+
+Result: total swap 512MB -> 2.5GB. zram holds pages compressed in RAM; SD-card swap is only used when zram is full. Reversible; no code changes.

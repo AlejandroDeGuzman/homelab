@@ -1,0 +1,12 @@
+[Unit]
+Description=Configure zram compressed-RAM swap
+After=swap.target
+Wants=swap.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/zram-swap-setup.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
