@@ -58,6 +58,8 @@ The live Raspberry Pi units are tracked in [`systemd/`](systemd/):
 - `mnt-storage_pool.automount`
 - `zram-swap.service`
 - `zram-swap-setup.sh`
+- `ssd-swapfile.service`
+- `ssd-swapfile-setup.sh`
 
 Check the storage units:
 
@@ -144,12 +146,8 @@ Tracked in this repo under [`immich/systemd/`](systemd/):
 
 - `immich/systemd/zram-swap-setup.sh` → `/usr/local/sbin/zram-swap-setup.sh` — idempotent zram setup script.
 - `immich/systemd/zram-swap.service` → `/etc/systemd/system/zram-swap.service` — systemd oneshot, `enabled` at boot.
-
-SSD swapfile persistence is via `/etc/fstab` (standard Debian), installed live on the Pi:
-
-```
-/mnt/immich_ssd/swapfile none swap sw,pri=50 0 0
-```
+- `immich/systemd/ssd-swapfile-setup.sh` → `/usr/local/sbin/ssd-swapfile-setup.sh` — idempotent SSD swapfile setup script (create 4G file, chmod 600, mkswap).
+- `immich/systemd/ssd-swapfile.service` → `/etc/systemd/system/ssd-swapfile.service` — systemd oneshot, `enabled` at boot. `Requires=` and `After=` `mnt-immich_ssd.mount` so the SSD is mounted before the swapfile activates (avoids fstab boot failures).
 
 Install on Pi:
 ```bash
@@ -160,13 +158,15 @@ sudo cp immich/systemd/zram-swap.service /etc/systemd/system/zram-swap.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now zram-swap.service
 
-# SSD swapfile (live on Pi, recorded in /etc/fstab)
-sudo fallocate -l 4G /mnt/immich_ssd/swapfile
-sudo chmod 600 /mnt/immich_ssd/swapfile
-sudo mkswap /mnt/immich_ssd/swapfile
-sudo swapon /mnt/immich_ssd/swapfile --priority 50
-echo "/mnt/immich_ssd/swapfile none swap sw,pri=50 0 0" | sudo tee -a /etc/fstab
+# SSD swapfile (repo-tracked systemd unit, no /etc/fstab)
+sudo cp immich/systemd/ssd-swapfile-setup.sh /usr/local/sbin/ssd-swapfile-setup.sh
+sudo chmod +x /usr/local/sbin/ssd-swapfile-setup.sh
+sudo cp immich/systemd/ssd-swapfile.service /etc/systemd/system/ssd-swapfile.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now ssd-swapfile.service
 ```
+
+Persistence: both services are `enabled` at boot. The SSD swapfile service waits for `mnt-immich_ssd.mount` before activating, so it is safe across reboots without touching `/etc/fstab`.
 
 Check:
 ```bash

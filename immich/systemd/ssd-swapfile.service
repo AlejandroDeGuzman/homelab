@@ -1,0 +1,14 @@
+[Unit]
+Description=Activate SSD swapfile (second swap layer behind zram)
+Requires=mnt-immich_ssd.mount
+After=mnt-immich_ssd.mount zram-swap.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ssd-swapfile-setup.sh
+ExecStart=/sbin/swapon /mnt/immich_ssd/swapfile --priority 50
+ExecStop=/sbin/swapoff /mnt/immich_ssd/swapfile
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
