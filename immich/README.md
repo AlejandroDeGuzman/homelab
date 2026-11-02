@@ -110,30 +110,62 @@ df -hT / /mnt/storage_pool /mnt/immich_ssd
 curl -s http://localhost:2283/api/server/version
 ```
 
-## Memory / Swap (zram)
+## Memory / Swap (zram + SSD swapfile)
 
 ### Why
 Raspberry Pi 5 has 8GB RAM. Bulk photo/video uploads run `immich_server` + `ffmpeg` (video processing) + `immich_machine_learning` at once. During a large upload, `ffmpeg` was killed by the kernel OOM killer (Nov 1 19:59:47, total-vm ~5.5GB, anon-rss ~3.5GB). The only swap was a 512MB `/var/swap` file on the SD card, running ~92% used, so there was no RAM headroom.
 
 ### Fix
-Added zram compressed-RAM swap as a high-priority swap device.
+Added a two-layer swap setup so the kernel never runs out of swap headroom during bulk uploads:
 
-- `/dev/zram0`, 2GiB uncompressed capacity, pages compressed in RAM (fast, no SD wear).
-- Priority `100`, so the kernel uses zram before the disk swap.
-- Existing `/var/swap` (512MB, priority `-2`) kept as a disk fallback.
+**Layer 1 — zram compressed-RAM swap** (`/dev/zram0`, 2GiB, priority `100`)
+- Pages compressed in RAM with zstd before storing. Fast, no SD-card wear.
+- First defense; used before any disk swap.
 
-Tracked in this repo under [`immich/systemd/`](systemd/), installed on the Pi at the live paths:
+**Layer 2 — SSD swapfile** (`/mnt/immich_ssd/swapfile`, 4GiB, priority `50`)
+- Lives on the external USB SSD (`/dev/sda2`, ext4), not the SD card.
+- Faster random I/O than SD card, no SD wear from swap churn.
+- Second defense; used when zram fills.
 
-- `immich/systemd/zram-swap-setup.sh` → `/usr/local/sbin/zram-swap-setup.sh` — idempotent setup script: `modprobe zram`, set `zram0` size 2G, `mkswap`, `swapon --priority 100`. Skips everything if zram is already active, so it is safe to run on every boot.
+**Layer 3 — SD-card swap** (`/var/swap`, 512MB, priority `-2`)
+- Kept as a last-resort fallback only.
+
+Total swap: 512MB → 6.5GiB. Kernel uses zram first, then SSD swapfile, then SD card. OOM killer only fires if all three are exhausted.
+
+### How zram connects to SSD swapfile
+zram is the fast, small, in-RAM first defense. When zram is full of compressed least-used pages, the kernel spills them to the next swap device by priority — the SSD swapfile. The SSD swapfile is bigger and slower than zram but much faster and kinder than the SD card. They stack: zram catches common pressure cheaply; SSD swapfile is the bigger safety net for huge uploads.
+
+### SSD vs SD card vs hard drive for swap
+- SSD: best choice — no moving parts, low latency, high IOPS, no SD wear. Use this for swap.
+- SD card: slow random I/O, low write endurance; swap churn wears it out. Only as last resort.
+- Hard drive: slower than SSD due to seek/latency; SSD wins.
+
+Tracked in this repo under [`immich/systemd/`](systemd/):
+
+- `immich/systemd/zram-swap-setup.sh` → `/usr/local/sbin/zram-swap-setup.sh` — idempotent zram setup script.
 - `immich/systemd/zram-swap.service` → `/etc/systemd/system/zram-swap.service` — systemd oneshot, `enabled` at boot.
+
+SSD swapfile persistence is via `/etc/fstab` (standard Debian), installed live on the Pi:
+
+```
+/mnt/immich_ssd/swapfile none swap sw,pri=50 0 0
+```
 
 Install on Pi:
 ```bash
+# zram (repo-tracked)
 sudo cp immich/systemd/zram-swap-setup.sh /usr/local/sbin/zram-swap-setup.sh
 sudo chmod +x /usr/local/sbin/zram-swap-setup.sh
 sudo cp immich/systemd/zram-swap.service /etc/systemd/system/zram-swap.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now zram-swap.service
+
+# SSD swapfile (live on Pi, recorded in /etc/fstab)
+sudo fallocate -l 4G /mnt/immich_ssd/swapfile
+sudo chmod 600 /mnt/immich_ssd/swapfile
+sudo mkswap /mnt/immich_ssd/swapfile
+sudo swapon /mnt/immich_ssd/swapfile --priority 50
+echo "/mnt/immich_ssd/swapfile none swap sw,pri=50 0 0" | sudo tee -a /etc/fstab
 ```
 
 Check:
@@ -143,4 +175,4 @@ free -h
 systemctl status zram-swap.service
 ```
 
-Result: total swap 512MB -> 2.5GB. zram holds pages compressed in RAM; SD-card swap is only used when zram is full. Reversible; no code changes.
+Result: total swap 512MB → 6.5GiB. zram holds pages compressed in RAM; SSD swapfile used when zram full; SD-card swap only as last resort. Reversible; no code changes.
