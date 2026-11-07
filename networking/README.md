@@ -41,6 +41,28 @@
 - Connect to Pi's Beszel hub via Tailscale tailnet
 - Dashboard: `https://pi-immich.tail0ba569.ts.net:8443` (Tailscale Serve → port `8090`)
 
+#### Lid Switch (keep laptop running with lid closed)
+`/etc/systemd/logind.conf` on MSI laptop:
+```
+HandleLidSwitch=ignore
+HandleLidSwitchExternalPower=ignore
+HandleLidSwitchDocked=ignore
+```
+Prevents the laptop from suspending when the lid is closed, so the remote ML container keeps running. Apply with `sudo systemctl restart systemd-logind`.
+
+#### Monitor Commands
+```bash
+# MSI laptop: verify Beszel agent is running
+docker ps --format "table {{.Names}}\t{{.Status}}" | grep beszel
+docker logs beszel-agent --tail 10
+
+# MSI laptop: verify GPU visible in container
+docker exec beszel-agent nvidia-smi
+
+# Pi: check Beszel server logs
+docker logs beszel --tail 10
+```
+
 #### Beszel Agent Compose (`/root/beszel-agent/docker-compose.yml` on MSI laptop)
 ```yaml
 services:
