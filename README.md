@@ -80,7 +80,7 @@ Each directory contains its own `README.md` with architecture details, configura
 * **Usage:**
 
   * Runs Ubuntu Server 24.04 LTS (reset from Linux Mint 22.3)
-  * Runs remote `immich-machine-learning` container (CUDA via GTX 1050) for Immich on Pi
+  * Runs remote `immich-machine-learning` container (OpenVINO CPU) for Immich on Pi
   * Runs Beszel agent (`beszel-agent-cuda` image) for system monitoring on Pi dashboard, including GPU stats
   * Nextcloud snap removed; Nextcloud redeployment pending
   * Available through Tailscale (`100.79.213.113`), offers exit node

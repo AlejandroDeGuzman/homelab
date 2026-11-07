@@ -182,7 +182,9 @@ Result: total swap 512MB → 6.5GiB. zram holds pages compressed in RAM; SSD swa
 ### Why
 Raspberry Pi 5 has 8GB RAM. Bulk photo/video uploads ran `immich_server` + `ffmpeg` (video processing) + `immich_machine_learning` simultaneously. During a large upload, `ffmpeg` was killed by the kernel OOM killer (Nov 1 19:59:47, total-vm ~5.5GB, anon-rss ~3.5GB). The Pi was out of RAM headroom.
 
-Fix 1 added zram + SSD swap to survive the pressure. Fix 2 moves the `immich_machine_learning` container off the Pi entirely to the MSI gaming laptop's NVIDIA GTX 1050 GPU. This removes the ML memory pressure from the Pi and gives CUDA-accelerated inference (2GB VRAM) instead of CPU-only processing.
+Fix 1 added zram + SSD swap to survive the pressure. Fix 2 moves the `immich_machine_learning` container off the Pi entirely to the MSI gaming laptop. This removes the ML memory pressure from the Pi.
+
+Initially ran on the GTX 1050 GPU (CUDA, 2GB VRAM) but VRAM was too small to hold CLIP + OCR + face detection models simultaneously, causing 500 errors. Switched to OpenVINO CPU backend which uses system RAM (8GB available) instead of VRAM - all model types work stably.
 
 ### Fix
 The `immich-machine-learning` container now runs on the MSI laptop (`msi`, Tailscale IP `100.79.213.113`), not on the Pi. The Pi's `immich-server` sends inference requests to the remote ML container over the Tailscale tailnet.
@@ -194,25 +196,23 @@ name: immich_remote_ml
 services:
   immich-machine-learning:
     container_name: immich_machine_learning
-    image: ghcr.io/immich-app/immich-machine-learning:release-cuda
+    image: ghcr.io/immich-app/immich-machine-learning:release-openvino
     volumes:
       - model-cache:/cache
     ports:
       - "3003:3003"
     restart: always
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    devices:
+      - /dev/dri:/dev/dri
+    environment:
+      - MACHINE_LEARNING_MODEL_TTL=120
+      - MACHINE_LEARNING_WORKERS=1
 
 volumes:
   model-cache:
 ```
 
-The ML container uses the `release-cuda` image tag for NVIDIA CUDA acceleration on the GTX 1050 (2GB VRAM). `MACHINE_LEARNING_WORKERS` is kept at the default so only one model copy loads into VRAM at a time (2GB is tight).
+The ML container uses the `release-openvino` image tag for OpenVINO CPU inference. `MACHINE_LEARNING_WORKERS=1` ensures only one model copy loads into RAM at a time. `MACHINE_LEARNING_MODEL_TTL=120` evicts idle models after 2 minutes to free RAM. Models load on-demand (no preloading) to avoid filling RAM at startup.
 
 On the Pi (`~/immich-app/.env`):
 ```
@@ -220,6 +220,14 @@ IMMICH_MACHINE_LEARNING_URL=http://100.79.213.113:3003
 ```
 
 The Pi's `immich-server` was restarted (`docker compose up -d`) after adding the env var. The local `immich-machine-learning` container on the Pi remains as a fallback.
+
+### Stability at high load
+MSI laptop has 8GB system RAM. OpenVINO models load into system RAM, not VRAM. Typical model sizes:
+- CLIP (smart search): ~500MiB
+- PP-OCRv5 (OCR): ~200MiB  
+- buffalo_l (face detection): ~200MiB
+
+With TTL eviction, only active models stay in RAM. Worst case ~1GiB for all models concurrently, leaving ~4GiB headroom on 8GiB box. Stable for bulk uploads.
 
 ### Security
 The ML endpoint has **no authentication**. Port 3003 on the laptop is firewalled with UFW to accept connections only from the Pi's Tailscale IP (`100.108.76.58`):
@@ -235,7 +243,7 @@ curl http://100.79.213.113:3003/ping    # expect {"status":"ok"} or "pong"
 
 # On the MSI laptop:
 docker ps --format "table {{.Names}}\t{{.Status}}" | grep immich
-docker exec immich_machine_learning nvidia-smi   # confirm GPU visible in container
+docker exec immich_machine_learning nvidia-smi   # will fail on OpenVINO - expected
 
 # In Immich UI:
 # Administration → Settings → Machine Learning → Add URL: http://100.79.213.113:3003
@@ -247,9 +255,9 @@ docker exec immich_machine_learning nvidia-smi   # confirm GPU visible in contai
 curl -s http://100.79.213.113:3003/ping
 docker logs immich_server --tail 50 | grep -i machine
 
-# Laptop: check ML container logs and GPU usage
+# Laptop: check ML container logs and RAM
 docker logs immich_machine_learning --tail 50
-docker exec immich_machine_learning nvidia-smi
+free -h
 
 # Pi: watch RAM during bulk uploads
 watch -n 2 free -h
