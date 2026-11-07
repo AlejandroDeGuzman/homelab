@@ -205,6 +205,7 @@ services:
     devices:
       - /dev/dri:/dev/dri
     environment:
+      - DEVICE=cpu
       - MACHINE_LEARNING_MODEL_TTL=120
       - MACHINE_LEARNING_WORKERS=1
 
@@ -212,7 +213,7 @@ volumes:
   model-cache:
 ```
 
-The ML container uses the `release-openvino` image tag for OpenVINO CPU inference. `MACHINE_LEARNING_WORKERS=1` ensures only one model copy loads into RAM at a time. `MACHINE_LEARNING_MODEL_TTL=120` evicts idle models after 2 minutes to free RAM. Models load on-demand (no preloading) to avoid filling RAM at startup.
+The ML container uses the `release-openvino` image tag for OpenVINO CPU inference. `DEVICE=cpu` forces CPU-only execution (avoids CUDA OOM on 2GB VRAM). `MACHINE_LEARNING_WORKERS=1` ensures only one model copy loads into RAM at a time. `MACHINE_LEARNING_MODEL_TTL=120` evicts idle models after 2 minutes to free RAM. Models load on-demand (no preloading) to avoid filling RAM at startup.
 
 On the Pi (`~/immich-app/.env`):
 ```
