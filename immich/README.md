@@ -176,3 +176,84 @@ systemctl status zram-swap.service
 ```
 
 Result: total swap 512MB → 6.5GiB. zram holds pages compressed in RAM; SSD swapfile used when zram full; SD-card swap only as last resort. Reversible; no code changes.
+
+## Remote Machine Learning (MSI Laptop)
+
+### Why
+Raspberry Pi 5 has 8GB RAM. Bulk photo/video uploads ran `immich_server` + `ffmpeg` (video processing) + `immich_machine_learning` simultaneously. During a large upload, `ffmpeg` was killed by the kernel OOM killer (Nov 1 19:59:47, total-vm ~5.5GB, anon-rss ~3.5GB). The Pi was out of RAM headroom.
+
+Fix 1 added zram + SSD swap to survive the pressure. Fix 2 moves the `immich_machine_learning` container off the Pi entirely to the MSI gaming laptop's NVIDIA GTX 1050 GPU. This removes the ML memory pressure from the Pi and gives CUDA-accelerated inference (2GB VRAM) instead of CPU-only processing.
+
+### Fix
+The `immich-machine-learning` container now runs on the MSI laptop (`msi`, Tailscale IP `100.79.213.113`), not on the Pi. The Pi's `immich-server` sends inference requests to the remote ML container over the Tailscale tailnet.
+
+On the MSI laptop (`/root/immich-ml/docker-compose.yml`):
+```yaml
+name: immich_remote_ml
+
+services:
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    image: ghcr.io/immich-app/immich-machine-learning:release-cuda
+    volumes:
+      - model-cache:/cache
+    ports:
+      - "3003:3003"
+    restart: always
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  model-cache:
+```
+
+The ML container uses the `release-cuda` image tag for NVIDIA CUDA acceleration on the GTX 1050 (2GB VRAM). `MACHINE_LEARNING_WORKERS` is kept at the default so only one model copy loads into VRAM at a time (2GB is tight).
+
+On the Pi (`~/immich-app/.env`):
+```
+IMMICH_MACHINE_LEARNING_URL=http://100.79.213.113:3003
+```
+
+The Pi's `immich-server` was restarted (`docker compose up -d`) after adding the env var. The local `immich-machine-learning` container on the Pi remains as a fallback.
+
+### Security
+The ML endpoint has **no authentication**. Port 3003 on the laptop is firewalled with UFW to accept connections only from the Pi's Tailscale IP (`100.108.76.58`):
+```bash
+sudo ufw allow from 100.108.76.58 to any port 3003
+sudo ufw deny 3003
+```
+
+### Check
+```bash
+# On the Pi:
+curl http://100.79.213.113:3003/ping    # expect {"status":"ok"} or "pong"
+
+# On the MSI laptop:
+docker ps --format "table {{.Names}}\t{{.Status}}" | grep immich
+docker exec immich_machine_learning nvidia-smi   # confirm GPU visible in container
+
+# In Immich UI:
+# Administration → Settings → Machine Learning → Add URL: http://100.79.213.113:3003
+```
+
+### Monitoring
+```bash
+# Pi: check ML server health
+curl -s http://100.79.213.113:3003/ping
+docker logs immich_server --tail 50 | grep -i machine
+
+# Laptop: check ML container logs and GPU usage
+docker logs immich_machine_learning --tail 50
+docker exec immich_machine_learning nvidia-smi
+
+# Pi: watch RAM during bulk uploads
+watch -n 2 free -h
+
+# Pi: check swap usage
+cat /proc/swaps
+```

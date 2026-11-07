@@ -39,7 +39,7 @@ Each directory contains its own `README.md` with architecture details, configura
 
 ### Currently Running
 
-* **Immich** — Self-hosted photo and video management (Raspberry Pi, `v3.2.2`, port `2283`)
+* **Immich** — Self-hosted photo and video management (Raspberry Pi, `v3.3.6`, port `2283`). Machine learning offloaded to MSI laptop via remote `immich-machine-learning` container on GTX 1050 GPU.
 * **Pi-hole** — Network-wide ad blocking and DNS filtering (Raspberry Pi, Core `v6.4.1`, port `80`)
 * **Tailscale** — VPN used for remote access, subnet routing, and secure tunnelling (Serve `:8443` Immich, `:8444` Homepage, `:8445` Pi-hole)
 * **Paperless-ngx** — Document management and OCR (Raspberry Pi, `3.3.1`, port `8000`)
@@ -72,16 +72,17 @@ Each directory contains its own `README.md` with architecture details, configura
 
 * **CPU:** Intel Core i5-8300H
 * **RAM:** 8GB
-* **GPU:** NVIDIA GTX 1050 (2GB)
+* **GPU:** NVIDIA GTX 1050 (2GB VRAM)
 * **Storage:**
 
   * 500GB Crucial MX500 SSD
   * 1TB HDD
 * **Usage:**
 
-  * Runs Linux Mint 22.3
-  * Runs Nextcloud through Snap
-  * Available through Tailscale
+  * Runs Ubuntu Server 24.04 LTS (reset from Linux Mint 22.3)
+  * Runs remote `immich-machine-learning` container (CUDA via GTX 1050) for Immich on Pi
+  * Nextcloud snap removed; Nextcloud redeployment pending
+  * Available through Tailscale (`100.79.213.113`), offers exit node
 
 ---
 
@@ -113,12 +114,7 @@ Each directory contains its own `README.md` with architecture details, configura
 
 ### MSI Gaming Laptop
 
-* Linux Mint root filesystem on the 500GB Crucial MX500 SSD
-* Nextcloud application, database, and user data stored on the SSD
+* Ubuntu Server root filesystem on the 500GB Crucial MX500 SSD
+* Nextcloud snap removed; redeployment pending (Docker recommended)
 * 1TB HDD present for future storage
-* Nextcloud runs through Snap, not Docker
-
-* Current Nextcloud storage:
-
-  * Data directory: `/var/snap/nextcloud/common/nextcloud/data`
-  * Host filesystem: `/dev/sda2`
+* ML model cache stored at Docker volume `model-cache` for `immich-machine-learning`

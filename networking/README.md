@@ -2,7 +2,7 @@
 
 ## Architecture
 - **Raspberry Pi 5**: Tailscale subnet router + exit node, Pi-hole DNS
-- **MSI Gaming Laptop**: Linux Mint host running Nextcloud through Snap
+- **MSI Gaming Laptop**: Ubuntu Server host running remote Immich ML (CUDA via GTX 1050) on Tailscale tailnet
 - **Home LAN** via TP-Link router (subnet routed over Tailscale)
 - **Tailscale**: Private VPN overlay
 
@@ -26,9 +26,11 @@
 - `https://pi-immich.tail0ba569.ts.net:8445` proxies `http://localhost:80` (Pi-hole)
 
 ## MSI Laptop Tailscale Configuration
-- Tailscale device name: `msi-nextcloud`
-- Nextcloud host offers a Tailscale exit node
+- Tailscale device name: `msi` (IP `100.79.213.113`)
+- Offers a Tailscale exit node
 - Tailscale SSH access uses the `root` user
+- Runs remote `immich-machine-learning` container (port `3003`, CUDA via GTX 1050)
+- Port `3003` firewalled with UFW to accept connections only from Pi's Tailscale IP (`100.108.76.58`)
 
 ## DNS
 - Pi-hole on Raspberry Pi (`pihole-FTL` on port `53` and `80`)
