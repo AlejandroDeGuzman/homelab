@@ -39,7 +39,7 @@ Each directory contains its own `README.md` with architecture details, configura
 
 ### Currently Running
 
-* **Immich** — Self-hosted photo and video management (Raspberry Pi, `v3.3.6`, port `2283`). Machine learning offloaded to MSI laptop via remote `immich-machine-learning` container on GTX 1050 GPU.
+* **Immich** — Self-hosted photo and video management (Raspberry Pi, `v3.3.6`, port `2283`). Machine learning offloaded to MSI laptop via remote `immich-machine-learning` container on OpenVINO CPU.
 * **Pi-hole** — Network-wide ad blocking and DNS filtering (Raspberry Pi, Core `v6.4.1`, port `80`)
 * **Tailscale** — VPN used for remote access, subnet routing, and secure tunnelling (Serve `:8443` Immich, `:8444` Homepage, `:8445` Pi-hole)
 * **Paperless-ngx** — Document management and OCR (Raspberry Pi, `3.3.1`, port `8000`)
