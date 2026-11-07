@@ -43,7 +43,7 @@ Each directory contains its own `README.md` with architecture details, configura
 * **Pi-hole** — Network-wide ad blocking and DNS filtering (Raspberry Pi, Core `v6.4.1`, port `80`)
 * **Tailscale** — VPN used for remote access, subnet routing, and secure tunnelling (Serve `:8443` Immich, `:8444` Homepage, `:8445` Pi-hole)
 * **Paperless-ngx** — Document management and OCR (Raspberry Pi, `3.3.1`, port `8000`)
-* **Beszel** — Homelab monitoring (Raspberry Pi, port `8090`)
+* **Beszel** — Homelab monitoring (Raspberry Pi server, port `8090`; MSI laptop agent, port `45876`, includes GPU stats via CUDA-enabled agent image)
 * **Homepage** — Homelab dashboard (Raspberry Pi, port `3000`)
 * **Nextcloud** — File storage and collaboration (MSI gaming laptop)
 
@@ -81,6 +81,7 @@ Each directory contains its own `README.md` with architecture details, configura
 
   * Runs Ubuntu Server 24.04 LTS (reset from Linux Mint 22.3)
   * Runs remote `immich-machine-learning` container (CUDA via GTX 1050) for Immich on Pi
+  * Runs Beszel agent (`beszel-agent-cuda` image) for system monitoring on Pi dashboard, including GPU stats
   * Nextcloud snap removed; Nextcloud redeployment pending
   * Available through Tailscale (`100.79.213.113`), offers exit node
 
