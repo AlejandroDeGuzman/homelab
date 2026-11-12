@@ -45,7 +45,7 @@ Each directory contains its own `README.md` with architecture details, configura
 * **Paperless-ngx** — Document management and OCR (Raspberry Pi, `3.3.1`, port `8000`)
 * **Beszel** — Homelab monitoring (Raspberry Pi server, port `8090`; MSI laptop agent, port `45876`, includes GPU stats via CUDA-enabled agent image)
 * **Homepage** — Homelab dashboard (Raspberry Pi, port `3000`)
-* **Nextcloud** — File storage and collaboration (MSI gaming laptop)
+* **Nextcloud** — Not deployed (MSI laptop snap removed; redeployment pending on Ubuntu Server)
 
 ---
 
@@ -82,7 +82,7 @@ Each directory contains its own `README.md` with architecture details, configura
   * Runs Ubuntu Server 24.04 LTS (reset from Linux Mint 22.3)
   * Runs remote `immich-machine-learning` container (OpenVINO CPU) for Immich on Pi
   * Runs Beszel agent (`beszel-agent-cuda` image) for system monitoring on Pi dashboard, including GPU stats
-  * Nextcloud snap removed; Nextcloud redeployment pending
+  * Nextcloud snap removed; Nextcloud redeployment pending (not currently running)
   * Available through Tailscale (`100.79.213.113`), offers exit node
 
 ---
@@ -116,6 +116,6 @@ Each directory contains its own `README.md` with architecture details, configura
 ### MSI Gaming Laptop
 
 * Ubuntu Server root filesystem on the 500GB Crucial MX500 SSD
-* Nextcloud snap removed; redeployment pending (Docker recommended)
+* Nextcloud snap removed; redeployment pending (Docker recommended) — not currently running
 * 1TB HDD present for future storage
 * ML model cache stored at Docker volume `model-cache` for `immich-machine-learning`
