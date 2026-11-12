@@ -31,14 +31,14 @@ services:
     environment:
       - DEVICE=cpu
       - MACHINE_LEARNING_MODEL_TTL=120
-      - MACHINE_LEARNING_WORKERS=1
+      - MACHINE_LEARNING_WORKERS=2
 
 volumes:
   model-cache:
 ```
 
 `DEVICE=cpu` forces CPU-only OpenVINO execution (avoids CUDA OOM on 2GB VRAM).
-`MACHINE_LEARNING_WORKERS=1` ensures only one model copy loads into RAM at a time.
+`MACHINE_LEARNING_WORKERS=2` allows two concurrent inference jobs for faster bulk processing.
 `MACHINE_LEARNING_MODEL_TTL=120` evicts idle models after 2 minutes.
 
 ## Pi Configuration (`~/immich-app/.env` on Raspberry Pi)
@@ -62,7 +62,7 @@ Typical model sizes:
 - PP-OCRv5 (OCR): ~200MiB
 - buffalo_l (face detection): ~200MiB
 
-With TTL eviction and on-demand loading, worst case ~1GiB RAM for all models concurrently, leaving ~4GiB headroom. Stable for bulk uploads.
+With TTL eviction, only active models stay in RAM. Worst case ~2GiB RAM for all models across 2 workers, leaving ~12GiB headroom. Stable for bulk uploads. Do not exceed ~4 workers on i5-8300H (4 cores / 8 threads).
 
 ## Check
 ```bash

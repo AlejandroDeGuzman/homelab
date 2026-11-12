@@ -207,13 +207,13 @@ services:
     environment:
       - DEVICE=cpu
       - MACHINE_LEARNING_MODEL_TTL=120
-      - MACHINE_LEARNING_WORKERS=1
+      - MACHINE_LEARNING_WORKERS=2
 
 volumes:
   model-cache:
 ```
 
-The ML container uses the `release-openvino` image tag for OpenVINO CPU inference. `DEVICE=cpu` forces CPU-only execution (avoids CUDA OOM on 2GB VRAM). `MACHINE_LEARNING_WORKERS=1` ensures only one model copy loads into RAM at a time. `MACHINE_LEARNING_MODEL_TTL=120` evicts idle models after 2 minutes to free RAM. Models load on-demand (no preloading) to avoid filling RAM at startup.
+The ML container uses the `release-openvino` image tag for OpenVINO CPU inference. `DEVICE=cpu` forces CPU-only execution (avoids CUDA OOM on 2GB VRAM). `MACHINE_LEARNING_WORKERS=2` allows two concurrent inference jobs for faster bulk processing. `MACHINE_LEARNING_MODEL_TTL=120` evicts idle models after 2 minutes to free RAM. Models load on-demand (no preloading) to avoid filling RAM at startup.
 
 On the Pi (`~/immich-app/.env`):
 ```
@@ -223,12 +223,12 @@ IMMICH_MACHINE_LEARNING_URL=http://100.79.213.113:3003
 The Pi's `immich-server` was restarted (`docker compose up -d`) after adding the env var. The local `immich-machine-learning` container on the Pi remains as a fallback.
 
 ### Stability at high load
-MSI laptop has 8GB system RAM. OpenVINO models load into system RAM, not VRAM. Typical model sizes:
+MSI laptop has 16GB system RAM (2x 8GB DDR4 SODIMM). OpenVINO models load into system RAM, not VRAM. Typical model sizes:
 - CLIP (smart search): ~500MiB
 - PP-OCRv5 (OCR): ~200MiB  
 - buffalo_l (face detection): ~200MiB
 
-With TTL eviction, only active models stay in RAM. Worst case ~1GiB for all models concurrently, leaving ~4GiB headroom on 8GiB box. Stable for bulk uploads.
+With TTL eviction, only active models stay in RAM. Worst case ~2GiB for all models across 2 workers, leaving ~12GiB headroom on 16GiB box. Stable for bulk uploads. Do not exceed ~4 workers on i5-8300H (4 cores / 8 threads).
 
 ### Security
 The ML endpoint has **no authentication**. Port 3003 on the laptop is firewalled with UFW to accept connections only from the Pi's Tailscale IP (`100.108.76.58`):
