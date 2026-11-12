@@ -4,7 +4,7 @@ Self-hosted file storage and collaboration server. The MSI laptop was reset to U
 
 ## Hardware
 - Intel Core i5-8300H CPU
-- 8GB RAM
+- 16GB RAM
 - NVIDIA GTX 1050 GPU (2GB VRAM)
 - 500GB Crucial MX500 SSD
 - 1TB HGST HDD

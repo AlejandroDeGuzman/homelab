@@ -9,7 +9,7 @@ Initially ran on GTX 1050 GPU (CUDA, 2GB VRAM) but VRAM too small for CLIP + OCR
 
 ## Hardware
 - Intel Core i5-8300H CPU
-- 8GB system RAM
+- 16GB system RAM
 - NVIDIA GTX 1050 (2GB VRAM) — idle, not used for ML inference
 - Ubuntu Server 24.04 LTS
 
@@ -56,7 +56,7 @@ sudo ufw deny 3003
 ```
 
 ## Stability
-MSI laptop has 8GB system RAM. OpenVINO models load into system RAM, not VRAM.
+MSI laptop has 16GB system RAM. OpenVINO models load into system RAM, not VRAM.
 Typical model sizes:
 - CLIP (smart search): ~500MiB
 - PP-OCRv5 (OCR): ~200MiB

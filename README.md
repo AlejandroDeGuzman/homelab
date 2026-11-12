@@ -71,7 +71,7 @@ Each directory contains its own `README.md` with architecture details, configura
 ### MSI Gaming Laptop
 
 * **CPU:** Intel Core i5-8300H
-* **RAM:** 8GB
+* **RAM:** 16GB
 * **GPU:** NVIDIA GTX 1050 (2GB VRAM)
 * **Storage:**
 
