@@ -1,5 +1,7 @@
 # Homelab
 
+test
+
 This repository documents my personal homelab setup.
 
 It contains configuration files, setup notes, and documentation for the services and infrastructure I run at home (or occasionally at my parents’ house). The goal of this homelab is to reduce reliance on Big Tech platforms by using open-source, self-hostable alternatives, while also serving as a practical learning environment.
