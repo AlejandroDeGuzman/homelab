@@ -187,7 +187,7 @@ Fix 1 added zram + SSD swap to survive the pressure. Fix 2 moves the `immich_mac
 Initially ran on the GTX 1050 GPU (CUDA, 2GB VRAM) but VRAM was too small to hold CLIP + OCR + face detection models simultaneously, causing 500 errors. Switched to OpenVINO CPU backend which uses system RAM (8GB available) instead of VRAM - all model types work stably.
 
 ### Fix
-The `immich-machine-learning` container now runs on the MSI laptop (`msi`, Tailscale IP `100.79.213.113`), not on the Pi. The Pi's `immich-server` sends inference requests to the remote ML container over the Tailscale tailnet.
+The `immich-machine-learning` container now runs on the MSI laptop (`msi`, Tailscale IP `<msi-tailscale-ip>`), not on the Pi. The Pi's `immich-server` sends inference requests to the remote ML container over the Tailscale tailnet.
 
 On the MSI laptop (`/root/immich-ml/docker-compose.yml`):
 ```yaml
@@ -217,7 +217,7 @@ The ML container uses the `release-openvino` image tag for OpenVINO CPU inferenc
 
 On the Pi (`~/immich-app/.env`):
 ```
-IMMICH_MACHINE_LEARNING_URL=http://100.79.213.113:3003
+IMMICH_MACHINE_LEARNING_URL=http://<msi-tailscale-ip>:3003
 ```
 
 The Pi's `immich-server` was restarted (`docker compose up -d`) after adding the env var. The local `immich-machine-learning` container on the Pi remains as a fallback.
@@ -231,29 +231,29 @@ MSI laptop has 16GB system RAM (2x 8GB DDR4 SODIMM). OpenVINO models load into s
 With TTL eviction, only active models stay in RAM. Worst case ~2GiB for all models across 2 workers, leaving ~12GiB headroom on 16GiB box. Stable for bulk uploads. Do not exceed ~4 workers on i5-8300H (4 cores / 8 threads).
 
 ### Security
-The ML endpoint has **no authentication**. Port 3003 on the laptop is firewalled with UFW to accept connections only from the Pi's Tailscale IP (`100.108.76.58`):
+The ML endpoint has **no authentication**. Port 3003 on the laptop is firewalled with UFW to accept connections only from the Pi's Tailscale IP (`<pi-tailscale-ip>`):
 ```bash
-sudo ufw allow from 100.108.76.58 to any port 3003
+sudo ufw allow from <pi-tailscale-ip> to any port 3003
 sudo ufw deny 3003
 ```
 
 ### Check
 ```bash
 # On the Pi:
-curl http://100.79.213.113:3003/ping    # expect {"status":"ok"} or "pong"
+curl http://<msi-tailscale-ip>:3003/ping    # expect {"status":"ok"} or "pong"
 
 # On the MSI laptop:
 docker ps --format "table {{.Names}}\t{{.Status}}" | grep immich
 docker exec immich_machine_learning nvidia-smi   # will fail on OpenVINO - expected
 
 # In Immich UI:
-# Administration → Settings → Machine Learning → Add URL: http://100.79.213.113:3003
+# Administration → Settings → Machine Learning → Add URL: http://<msi-tailscale-ip>:3003
 ```
 
 ### Monitoring
 ```bash
 # Pi: check ML server health
-curl -s http://100.79.213.113:3003/ping
+curl -s http://<msi-tailscale-ip>:3003/ping
 docker logs immich_server --tail 50 | grep -i machine
 
 # Laptop: check ML container logs and RAM

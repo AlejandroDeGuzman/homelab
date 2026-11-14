@@ -13,7 +13,7 @@ Self-hosted file storage and collaboration server. The MSI laptop was reset to U
 - Hostname: `msi`
 - Operating system: Ubuntu Server 24.04 LTS
 - Nextcloud deployment: Not yet deployed (snap removed)
-- Tailscale device name: `msi` (IP `100.79.213.113`)
+- Tailscale device name: `msi` (IP `<msi-tailscale-ip>`)
 
 ## Active Services
 - `immich-machine-learning` (Docker, port `3003`) — remote ML inference for Immich on Pi, CUDA-accelerated via GTX 1050

@@ -43,15 +43,15 @@ volumes:
 
 ## Pi Configuration (`~/immich-app/.env` on Raspberry Pi)
 ```
-IMMICH_MACHINE_LEARNING_URL=http://100.79.213.113:3003
+IMMICH_MACHINE_LEARNING_URL=http://<msi-tailscale-ip>:3003
 ```
 
 The Pi's `immich-server` was restarted after adding the env var. Local `immich-machine-learning` container on Pi remains as fallback.
 
 ## Security
-ML endpoint has **no authentication**. Port 3003 firewalled with UFW to accept connections only from Pi's Tailscale IP (`100.108.76.58`):
+ML endpoint has **no authentication**. Port 3003 firewalled with UFW to accept connections only from Pi's Tailscale IP (`<pi-tailscale-ip>`):
 ```bash
-sudo ufw allow from 100.108.76.58 to any port 3003
+sudo ufw allow from <pi-tailscale-ip> to any port 3003
 sudo ufw deny 3003
 ```
 
@@ -72,7 +72,7 @@ curl http://localhost:3003/ping      # expect {"status":"ok"} or "pong"
 free -h
 
 # On Pi:
-curl -s http://100.79.213.113:3003/ping
+curl -s http://<msi-tailscale-ip>:3003/ping
 docker logs immich_server --tail 50 | grep -i machine
 ```
 

@@ -32,6 +32,7 @@ Each directory contains its own `README.md` with architecture details, configura
 * **Nextcloud:** [`nextcloud/README.md`](nextcloud/README.md)
 * **Pi-hole:** [`pi_hole/README.md`](pi_hole/README.md)
 * **Networking:** [`networking/README.md`](networking/README.md)
+* **Ollama:** [`ollama/README.md`](ollama/README.md)
 
 ---
 
@@ -45,6 +46,7 @@ Each directory contains its own `README.md` with architecture details, configura
 * **Paperless-ngx** — Document management and OCR (Raspberry Pi, `3.3.1`, port `8000`)
 * **Beszel** — Homelab monitoring (Raspberry Pi server, port `8090`; MSI laptop agent, port `45876`, includes GPU stats via CUDA-enabled agent image)
 * **Homepage** — Homelab dashboard (Raspberry Pi, port `3000`)
+* **Ollama** — Local LLM on MSI laptop (`<msi-tailscale-ip>:11434`). Paperless-ngx on Pi sends document text for AI tag suggestions. See [`ollama/README.md`](ollama/README.md).
 * **Nextcloud** — Not deployed (MSI laptop snap removed; redeployment pending on Ubuntu Server)
 
 ---
@@ -82,8 +84,9 @@ Each directory contains its own `README.md` with architecture details, configura
   * Runs Ubuntu Server 24.04 LTS (reset from Linux Mint 22.3)
   * Runs remote `immich-machine-learning` container (OpenVINO CPU) for Immich on Pi
   * Runs Beszel agent (`beszel-agent-cuda` image) for system monitoring on Pi dashboard, including GPU stats
+  * Runs Ollama (`llama3.2:1b`, `embeddinggemma:300m-qat-q4_0`) on GTX 1050 GPU for Paperless AI tag suggestions. See [`ollama/README.md`](ollama/README.md).
   * Nextcloud snap removed; Nextcloud redeployment pending (not currently running)
-  * Available through Tailscale (`100.79.213.113`), offers exit node
+  * Available through Tailscale (`<msi-tailscale-ip>`), offers exit node
 
 ---
 
